@@ -1,0 +1,27 @@
+path: /content/custom_data
+train: train/images
+val: valid/images
+test: test/images
+nc: 21
+names:
+- Biogesic Paracetamol
+- Decolgen
+- Intunal F
+- Intunal Kaplet
+- Inza
+- Mixagrip
+- Mixagrip Flu dan Batuk
+- Neozep Forte
+- Oskadon SP
+- Oskadon Sakit Kepala
+- Pamol Paracetamol
+- Panadol Cold Flu
+- Panadol Extra Paracetamol
+- Panadol Paracetamol
+- Paramex
+- Paramex Flu dan Batuk
+- Paramex Nyeri Otot
+- Poldan Mig
+- Sanaflu
+- Ultraflu
+- Ultraflu Extra
