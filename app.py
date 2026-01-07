@@ -12,6 +12,69 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Custom CSS untuk UI yang lebih bagus
+st.markdown("""
+<style>
+    /* Background & Font */
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
+        color: white !important;
+    }
+    
+    /* Title Styling */
+    h1 {
+        color: #2d3748;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+    }
+    
+    h2 {
+        color: #4a5568;
+    }
+    
+    /* Button Styling */
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Card Styling */
+    .medicine-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin: 10px 0;
+        border-left: 4px solid #667eea;
+    }
+    
+    /* Info Box */
+    [data-testid="stAlert"] {
+        border-radius: 10px;
+        padding: 15px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # --- 1. SETUP DATABASE (DATA TETAP) ---
 MEDICINE_DB = {
     # --- PARACETAMOL (Hijau) 🟢 ---
@@ -50,7 +113,7 @@ def load_model():
 try:
     model = load_model()
 except Exception as e:
-    st.error(f"Error: Tidak bisa load model 'best.pt'. Pastikan file ada di folder yang sama.\n\nDetail: {e}")
+    st.error(f"❌ Error: Tidak bisa load model 'best.pt'. Pastikan file ada di folder yang sama.\n\nDetail: {e}")
     st.stop()
 
 # --- FUNGSI TAMPILKAN INFO OBAT ---
@@ -60,27 +123,29 @@ def display_medicine_info(class_name, conf_score):
         data = MEDICINE_DB[class_name]
         
         # Styling Badge Warna
-        if data['color'] == 'green':
-            st.success(f"### 🟢 {data['name']}")
-        else:
-            st.info(f"### 🔵 {data['name']}")
+        badge_color = "🟢" if data['color'] == 'green' else "🔵"
+        badge_type = "Obat Bebas" if data['color'] == 'green' else "Obat Bebas Terbatas"
         
-        st.caption(f"Confidence: {conf_score:.2f} | ID: {class_name}")
-        st.write(f"**Jenis:** {data['type']}")
-        st.write(f"**Fungsi:** {data['desc']}")
+        st.markdown(f"""
+        <div class="medicine-card">
+            <h3>{badge_color} {data['name']}</h3>
+            <p><strong>Kategori:</strong> {badge_type}</p>
+            <p><strong>Kepercayaan:</strong> {conf_score:.1%}</p>
+            <p><strong>Fungsi:</strong> {data['desc']}</p>
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        st.warning(f"⚠️ **{class_name}**")
-        st.write("Info detil obat ini belum ada di database.")
+        st.warning(f"⚠️ **{class_name}** - Info detil belum ada di database.")
 
 # --- 3. UI SIDEBAR & NAVIGASI ---
 with st.sidebar:
-    st.title("💊 Smart Pharmacy")
-    st.write("Aplikasi Deteksi Kemasan Obat")
+    st.markdown("# 💊 Smart Pharmacy")
+    st.markdown("**Aplikasi Deteksi Kemasan Obat**")
     st.markdown("---")
     
     # Menu Navigasi
     selected_menu = st.radio(
-        "Menu Aplikasi:", 
+        "📍 Menu Aplikasi:", 
         ["🚀 Mulai Deteksi", "ℹ️ Panduan / Info", "👥 Tim Pengembang"],
     )
     
@@ -88,7 +153,7 @@ with st.sidebar:
     # Settingan hanya muncul di menu deteksi
     if selected_menu == "🚀 Mulai Deteksi":
         st.subheader("⚙️ Pengaturan")
-        confidence = st.slider("Tingkat Keyakinan (Confidence)", 0.0, 1.0, 0.40, 0.05) # Default agak tinggi untuk live
+        confidence = st.slider("Tingkat Keyakinan", 0.0, 1.0, 0.40, 0.05)
     else:
         confidence = 0.25 
 
@@ -96,135 +161,211 @@ with st.sidebar:
 
 # === HALAMAN 1: MULAI DETEKSI ===
 if selected_menu == "🚀 Mulai Deteksi":
-    st.title("Deteksi Obat Cerdas")
+    st.markdown("# 🔍 Deteksi Obat Cerdas")
+    st.markdown("Identifikasi kemasan obat dengan teknologi AI terdepan")
+    st.markdown("---")
     
     # Tab untuk pilihan input
     tab1, tab2 = st.tabs(["📁 Upload Gambar", "🎥 Live Scan (Kamera)"])
     
     # --- TAB 1: UPLOAD FILE (Static) ---
     with tab1:
+        st.markdown("### Unggah Foto Kemasan Obat")
         st.write("Upload foto untuk deteksi statis.")
-        uploaded_file = st.file_uploader("Upload foto kemasan obat", type=["jpg", "jpeg", "png"])
+        
+        uploaded_file = st.file_uploader("Pilih gambar:", type=["jpg", "jpeg", "png"])
         
         if uploaded_file is not None:
             image = Image.open(uploaded_file)
-            col1, col2 = st.columns([1, 1])
+            col1, col2 = st.columns(2)
             
             with col1:
-                # PERBAIKAN 1: use_container_width=True
-                st.image(image, caption="Gambar Asli", use_container_width=True)
+                st.markdown("**📷 Gambar Asli:**")
+                st.image(image, use_column_width=True)
                 
-            if st.button("🔍 Analisis Foto"):
+            if st.button("🔍 Analisis Foto", key="analyze_btn"):
                 with col2:
+                    st.markdown("**🎯 Hasil Deteksi:**")
                     results = model.predict(image, conf=confidence)
                     result = results[0]
                     res_plotted = result.plot()
                     
-                    # PERBAIKAN 2: use_container_width=True
-                    st.image(res_plotted, caption="Hasil Deteksi", use_container_width=True, channels="BGR")
+                    st.image(res_plotted, use_column_width=True, channels="BGR")
                     
                     if len(result.boxes) > 0:
-                        with st.expander("📝 Hasil Analisis", expanded=True):
-                            for box in result.boxes:
-                                cls_id = int(box.cls[0])
-                                name = model.names[cls_id]
-                                conf = float(box.conf[0])
+                        st.markdown("---")
+                        st.markdown("### 📝 Informasi Obat Terdeteksi")
+                        for idx, box in enumerate(result.boxes, 1):
+                            cls_id = int(box.cls[0])
+                            name = model.names[cls_id]
+                            conf = float(box.conf[0])
+                            with st.expander(f"Obat #{idx}: {name}", expanded=True):
                                 display_medicine_info(name, conf)
-                                st.markdown("---")
                     else:
-                        st.warning("Tidak ada obat terdeteksi.")
+                        st.warning("❌ Tidak ada obat terdeteksi. Coba foto yang lebih jelas.")
 
     # --- TAB 2: LIVE SCAN (Real-time Loop) ---
     with tab2:
-        st.write("Mode ini menggunakan kamera webcam (Dioptimalkan).")
+        st.markdown("### Live Scan dari Webcam")
+        st.write("Mode real-time menggunakan kamera webcam Anda.")
         
         col_btn1, col_btn2 = st.columns([1, 3])
         with col_btn1:
-            run_camera = st.checkbox("🔴 Buka Kamera (ON/OFF)")
+            run_camera = st.checkbox("🔴 Buka Kamera", value=False)
         
         st_frame = st.empty()
         st_info = st.empty()
+        status_placeholder = st.empty()
 
         if run_camera:
             cap = cv2.VideoCapture(0)
             
-            # OPTIMASI 1: Set Resolusi Kamera lebih rendah (Standard VGA)
-            # Semakin kecil resolusi, semakin cepat YOLO bekerja
-            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            if not cap.isOpened():
+                st.error("❌ Tidak bisa membuka webcam. Pastikan kamera terhubung.")
+            else:
+                # Optimasi: Set Resolusi Kamera
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                cap.set(cv2.CAP_PROP_FPS, 30)
 
-            frame_count = 0
-            skip_frames = 3  # Jalankan AI hanya setiap 3 frame sekali
-            last_result = None # Menyimpan hasil deteksi terakhir
+                frame_count = 0
+                skip_frames = 2  # Jalankan AI setiap 2 frame
+                last_result = None
+                detected_medicines = {}
 
-            while run_camera:
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                
-                frame_count += 1
-                
-                # OPTIMASI 2: Frame Skipping Logic
-                # Jika frame ke-N, jalankan YOLO. Jika tidak, pakai hasil lama.
-                if frame_count % skip_frames == 0:
-                    results = model.predict(frame, conf=confidence, verbose=False)
-                    last_result = results[0]
-                
-                # Visualisasi
-                if last_result:
-                    # Plotting hasil terakhir ke frame yang sekarang (agar kotak tidak hilang)
-                    annotated_frame = last_result.plot(img=frame) 
-                else:
-                    annotated_frame = frame
+                status_placeholder.info("🟢 Kamera aktif... Arahkan obat ke depan kamera")
 
-                # Tampilkan Video
-                frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
-                st_frame.image(frame_rgb, channels="RGB", use_container_width=True)
-                
-                # Tampilkan Info (Hanya update jika ada hasil baru biar hemat resource)
-                if last_result and len(last_result.boxes) > 0:
-                    best_box = max(last_result.boxes, key=lambda x: x.conf[0])
-                    cls_id = int(best_box.cls[0])
-                    name = model.names[cls_id]
-                    conf = float(best_box.conf[0])
+                while run_camera:
+                    ret, frame = cap.read()
+                    if not ret:
+                        status_placeholder.error("❌ Gagal membaca frame dari kamera.")
+                        break
                     
-                    with st_info.container():
-                        display_medicine_info(name, conf)
+                    frame_count += 1
+                    
+                    # Frame Skipping Logic
+                    if frame_count % skip_frames == 0:
+                        results = model.predict(frame, conf=confidence, verbose=False)
+                        last_result = results[0]
+                    
+                    # Visualisasi
+                    if last_result:
+                        annotated_frame = last_result.plot(img=frame) 
+                    else:
+                        annotated_frame = frame
 
-            cap.release()
+                    # Tampilkan Video
+                    frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+                    st_frame.image(frame_rgb, use_column_width=True)
+                    
+                    # Tampilkan Info
+                    if last_result and len(last_result.boxes) > 0:
+                        best_box = max(last_result.boxes, key=lambda x: x.conf[0])
+                        cls_id = int(best_box.cls[0])
+                        name = model.names[cls_id]
+                        conf = float(best_box.conf[0])
+                        
+                        with st_info.container():
+                            st.markdown("### 🎯 Obat Terdeteksi")
+                            display_medicine_info(name, conf)
+                    else:
+                        with st_info.container():
+                            st.info("⏳ Menunggu deteksi... Arahkan obat ke kamera")
+
+                cap.release()
+                status_placeholder.success("✅ Kamera ditutup")
 
 # === HALAMAN 2: INFO ===
 elif selected_menu == "ℹ️ Panduan / Info":
-    st.title("Tentang Aplikasi")
-    st.info("Aplikasi ini menggunakan teknologi YOLOv11s untuk mengenali kemasan obat secara real-time maupun upload foto.")
+    st.markdown("# 📚 Tentang Aplikasi")
     
-    st.subheader("Cara Penggunaan Live Scan:")
-    st.markdown("""
-    1. Masuk ke menu **Mulai Deteksi**.
-    2. Pilih Tab **Live Scan (Kamera)**.
-    3. Centang kotak **🔴 Buka Kamera (ON/OFF)**.
-    4. Arahkan obat ke depan webcam. Penjelasan obat akan muncul di bawah video.
-    """)
+    st.info("🤖 Aplikasi ini menggunakan teknologi **YOLOv11s** untuk mengenali kemasan obat secara real-time maupun upload foto dengan akurasi tinggi.")
     
-    st.subheader("Warna Kategori Obat:")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### 🚀 Cara Penggunaan Live Scan")
+        st.markdown("""
+        1. Masuk ke menu **Mulai Deteksi**
+        2. Pilih Tab **Live Scan (Kamera)**
+        3. Centang **🔴 Buka Kamera**
+        4. Arahkan obat ke depan webcam
+        5. Tunggu deteksi muncul di bawah video
+        """)
+    
+    with col2:
+        st.markdown("### 📸 Cara Penggunaan Upload Gambar")
+        st.markdown("""
+        1. Masuk ke menu **Mulai Deteksi**
+        2. Pilih Tab **Upload Gambar**
+        3. Upload foto kemasan obat
+        4. Klik **🔍 Analisis Foto**
+        5. Lihat hasil deteksi di sebelah kanan
+        """)
+    
+    st.markdown("---")
+    st.markdown("### 🎨 Warna Kategori Obat")
+    
     col_a, col_b = st.columns(2)
     with col_a:
-        st.success("🟢 **Lingkaran Hijau (Obat Bebas)**")
-        st.write("Dapat dibeli tanpa resep dokter secara bebas.")
+        st.success("""
+        ### 🟢 Obat Bebas (Hijau)
+        Dapat dibeli **tanpa resep dokter** secara bebas di apotek.
+        """)
     with col_b:
-        st.info("🔵 **Lingkaran Biru (Bebas Terbatas)**")
-        st.write("Dapat dibeli tanpa resep, namun dengan peringatan khusus.")
+        st.info("""
+        ### 🔵 Obat Bebas Terbatas (Biru)
+        Dapat dibeli **tanpa resep**, namun dengan **peringatan khusus**.
+        """)
+    
+    st.markdown("---")
+    st.markdown("### ⚡ Tips Penggunaan")
+    st.markdown("""
+    - **Pencahayaan yang baik** meningkatkan akurasi deteksi
+    - **Posisikan kemasan obat** agar label terlihat jelas
+    - **Jarak optimal** 20-50 cm dari kamera
+    - Jika deteksi tidak akurat, coba ubah **Tingkat Keyakinan** di Pengaturan
+    """)
 
 # === HALAMAN 3: TIM PENGEMBANG ===
 elif selected_menu == "👥 Tim Pengembang":
-    st.title("Tim Pengembang")
-    st.write("Proyek ini didedikasikan untuk membantu identifikasi obat secara digital.")
+    st.markdown("# 👨‍💻 Tim Pengembang")
+    st.markdown("Proyek ini didedikasikan untuk membantu identifikasi obat secara digital dan meningkatkan literasi kesehatan masyarakat.")
+    
+    st.markdown("---")
     
     col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("### 👩‍💻 Dev 1")
-        st.write("Fitri Salwa")
-    with col2:
-        st.markdown("### 👩‍💻 Dev 2")
-        st.write("Salma Nesya Putri Salia")
     
+    with col1:
+        st.markdown("""
+        ### 👩‍💻 Developer 1
+        **Fitri Salwa**
+        
+        - Backend Development
+        - Model Integration
+        """)
+    
+    with col2:
+        st.markdown("""
+        ### 👩‍💻 Developer 2
+        **Salma Nesya Putri Salia**
+        
+        - Frontend Development
+        - UI/UX Design
+        """)
+    
+    with col3:
+        st.markdown("""
+        ### 🎯 Tujuan Proyek
+        
+        Membantu pengguna mengidentifikasi obat dengan cepat dan akurat melalui teknologi AI.
+        """)
+    
+    st.markdown("---")
+    st.markdown("### 🛠️ Tech Stack")
+    st.markdown("""
+    - **Framework**: Streamlit
+    - **AI Model**: YOLOv11s (Ultralytics)
+    - **Computer Vision**: OpenCV
+    - **Image Processing**: Pillow, NumPy
+    """)
