@@ -339,7 +339,7 @@ elif selected_menu == "👥 Tim Pengembang":
     with col1:
         st.markdown("""
         ### 👩‍💻 Developer 1
-        **Fitri Salwa**
+        **Salma Nesya Putri Salia**
         
         - Backend Development
         - Model Integration
@@ -348,7 +348,7 @@ elif selected_menu == "👥 Tim Pengembang":
     with col2:
         st.markdown("""
         ### 👩‍💻 Developer 2
-        **Salma Nesya Putri Salia**
+        **Fitri Salwa**
         
         - Frontend Development
         - UI/UX Design
