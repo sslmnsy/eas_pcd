@@ -196,7 +196,7 @@ if selected_menu == "🚀 Mulai Deteksi":
 # === HALAMAN 2: INFO ===
 elif selected_menu == "ℹ️ Panduan / Info":
     st.title("Tentang Aplikasi")
-    st.info("Aplikasi ini menggunakan teknologi YOLOv8 untuk mengenali kemasan obat secara real-time maupun upload foto.")
+    st.info("Aplikasi ini menggunakan teknologi YOLOv11s untuk mengenali kemasan obat secara real-time maupun upload foto.")
     
     st.subheader("Cara Penggunaan Live Scan:")
     st.markdown("""
@@ -222,11 +222,9 @@ elif selected_menu == "👥 Tim Pengembang":
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("### 👨‍💻 Dev 1")
-        st.write("AI Model Engineer")
+        st.markdown("### 👩‍💻 Dev 1")
+        st.write("Fitri Salwa")
     with col2:
         st.markdown("### 👩‍💻 Dev 2")
-        st.write("Frontend Streamlit")
-    with col3:
-        st.markdown("### 🧑‍🔬 Dev 3")
-        st.write("Data Research")
+        st.write("Salma Nesya Putri Salia")
+    
